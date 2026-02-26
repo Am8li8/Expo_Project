@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستكشف البيئة الذكي 🌱</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌱 مساعد البيئة الذكي</h1>
+        <p>صور أي مخلفات وسأخبرك كيف تعيد تدويرها!</p>
+
+        <div class="camera-area">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+
+        <button id="capture-btn" class="btn">تحليل المنتج الآن 🔍</button>
+
+        <div id="loading" class="hidden">جاري التحليل بذكاء... ⏳</div>
+        
+        <div id="result-card" class="hidden">
+            <h2 id="item-name">اسم المنتج</h2>
+            <p><strong>المادة:</strong> <span id="item-material"></span></p>
+            <div class="carbon-box">
+                🌍 توفير الكربون: <span id="carbon-value">0</span> جرام
+            </div>
+            <h3>💡 أفكار لإعادة التدوير:</h3>
+            <ul id="recycling-list"></ul>
+            <p class="fact"><em>معلومة: </em><span id="fact-text"></span></p>
+        </div>
+    </div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
