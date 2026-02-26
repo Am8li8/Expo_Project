@@ -35,36 +35,50 @@ captureBtn.addEventListener('click', async () => {
     loading.classList.remove('hidden');
     resultCard.classList.add('hidden');
 
-    try {
-        // تم تحديث اسم الموديل هنا لضمان وجوده في السيرفر
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+try {
+        // قائمة بالموديلات الممكنة (جوجل بتغير مسمياتها)
+        const modelsToTry = [
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b",
+            "gemini-2.0-flash-exp", // موديل 2026 الأحدث
+            "gemini-pro-vision"
+        ];
 
-        const prompt = "أنت خبير بيئي. حلل الصورة وأعطني JSON بالعربية فقط وبدون أي نص إضافي: {\"item_name\": \"...\", \"material\": \"...\", \"recycling_ideas\": [\"1\",\"2\",\"3\"], \"carbon_savings\": 10, \"fun_fact\": \"...\"}";
+        let response;
+        let success = false;
 
-        const result = await model.generateContent([
-            prompt,
-            { inlineData: { data: imageData, mimeType: "image/jpeg" } }
-        ]);
+        for (let modelName of modelsToTry) {
+            try {
+                console.log(`جاري تجربة الموديل: ${modelName}`);
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const prompt = "حلل الصورة وأعطني JSON بالعربية: {item_name, material, recycling_ideas:[], carbon_savings:10, fun_fact}";
+                
+                const result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: imageData, mimeType: "image/jpeg" } }
+                ]);
+                
+                response = await result.response;
+                success = true;
+                console.log(`نجح الاتصال باستخدام: ${modelName}`);
+                break; // اخرج من اللوب لو اشتغل
+            } catch (err) {
+                console.warn(`الموديل ${modelName} غير متاح، بجرب اللي بعده...`);
+            }
+        }
 
-        const response = await result.response;
+        if (!success) throw new Error("كل الموديلات المتاحة لم تستجب. تأكد من إعدادات الـ API Key في Google Cloud.");
+
         const text = response.text();
-        
-        // تنظيف متطور للنص لاستخراج الـ JSON فقط حتى لو الـ AI أخطأ
         const startBracket = text.indexOf('{');
         const endBracket = text.lastIndexOf('}');
-        if (startBracket === -1 || endBracket === -1) throw new Error("لم يتمكن الذكاء الاصطناعي من تنسيق البيانات بشكل صحيح.");
-        
         const jsonString = text.substring(startBracket, endBracket + 1);
         
-        const data = JSON.parse(jsonString);
-        displayResults(data);
+        displayResults(JSON.parse(jsonString));
 
     } catch (error) {
-        console.error("تفاصيل الخطأ:", error);
-        // إذا استمر خطأ 404، سنقوم بتجربة موديل بديل فوراً في المرة القادمة
-        alert("خطأ تقني: " + error.message);
-    } finally {
-        loading.classList.add('hidden');
+        console.error("خطأ نهائي:", error);
+        alert("فشل التحليل: " + error.message);
     }
 });
 
